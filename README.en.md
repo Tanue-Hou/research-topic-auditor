@@ -34,7 +34,7 @@ From search to topic selection — an all-in-one research auditing assistant
 
 ```bash
 # Clone this repo to Claude Code skills directory
-git clone https://github.com/Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
+git clone git@github.com:Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
 # Check dependencies
 bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh
 ```
@@ -168,7 +168,7 @@ This Skill requires the upstream search infrastructure (academic-search) plus th
 git clone https://github.com/Mingyue-Cheng/academic-search ~/.claude/skills/academic-search
 
 # Step 2: Install this skill (research-topic-auditor)
-git clone https://github.com/Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
+git clone git@github.com:Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
 
 # Step 3: Check environment dependencies
 bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh

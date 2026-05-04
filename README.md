@@ -45,7 +45,7 @@ research-topic-auditor (新增)  → 科研选题审查五步法
 
 ```bash
 # 克隆本仓库到 Claude Code skills 目录
-git clone https://github.com/Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
+git clone git@github.com:Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
 # 检查环境依赖
 bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh
 ```
@@ -126,7 +126,7 @@ bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh
 git clone https://github.com/Mingyue-Cheng/academic-search ~/.claude/skills/academic-search
 
 # 步骤二：安装本 Skill（research-topic-auditor）
-git clone https://github.com/Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
+git clone git@github.com:Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
 
 # 步骤三：检查环境依赖
 bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh
