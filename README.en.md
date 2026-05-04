@@ -1,348 +1,280 @@
 > 🚧 **Built on top of [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search) v1.2.0 by Mingyue Cheng (MIT License).**
-> The upstream `academic-search` provides a solid multi-platform paper search infrastructure.
-> **research-topic-auditor** extends it with **Topic Discovery & Research Frontier Analysis**,
+> The upstream `academic-search` provides multi-platform paper search infrastructure.
+> **research-topic-auditor** extends it with **Topic Auditing** capabilities,
 > forming a two-layer architecture: search infrastructure + topic auditing.
 
-<table>
-  <tr>
-    <td width="220" valign="middle">
-      <img src="assets/logo.png" alt="academic-search logo" width="180" />
-    </td>
-    <td valign="middle">
-      <h1>Academic Search & Topic Discovery</h1>
-    </td>
-  </tr>
-</table>
-
-<p align="center">Academic search and paper metadata extraction for Claude Code</p>
-
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v1.2.0-0f766e" alt="version" />
-  <img src="https://img.shields.io/badge/license-MIT-1f2937" alt="license" />
-  <img src="https://img.shields.io/badge/test-make%20test%20%7C%20make%20test--release-2563eb" alt="test" />
+  <strong style="font-size:2.2em; vertical-align:middle;">Research Topic Auditor</strong>
 </p>
 
+<p align="center">A Claude Skill for evidence-based research topic auditing</p>
+
 <p align="center">
-  <a href="https://github.com/Mingyue-Cheng/academic-search/stargazers">
-    <img src="https://img.shields.io/github/stars/Mingyue-Cheng/academic-search?style=social" alt="GitHub stars" />
-  </a>
-  <a href="https://github.com/Mingyue-Cheng/academic-search/commits/main">
-    <img src="https://img.shields.io/github/last-commit/Mingyue-Cheng/academic-search" alt="last commit" />
-  </a>
-  <a href="https://github.com/Mingyue-Cheng/academic-search">
-    <img src="https://img.shields.io/badge/repo-GitHub-111827?logo=github" alt="repo link" />
-  </a>
+  <img src="https://img.shields.io/badge/version-v0.1.0-0f766e" />
+  <img src="https://img.shields.io/badge/license-MIT-1f2937" />
+  <img src="https://img.shields.io/badge/status-building-yellow" />
+  <img src="https://img.shields.io/badge/built_on-academic_search_v1.2.0-blue" />
 </p>
 
 <p align="center"><a href="README.md">简体中文</a> | English</p>
 
-academic-search skill brings academic-oriented retrieval strategy, cross-platform metadata normalization, and browser automation support to Claude Code. It is designed for paper discovery, author analysis, citation lookup, open-access PDF retrieval, BibTeX export, and structured literature comparison across multiple sources.
+---
 
-Compared with generic WebSearch and WebFetch, this skill focuses on three things: **platform selection for academic tasks**, **structured outputs**, and **reusable site-specific operational knowledge**.
+## Project Positioning
+
+```
+academic-search (upstream)         → multi-platform paper search infrastructure
+         +
+research-topic-auditor (this repo) → 5-step research topic audit workflow
+         =
+From search to topic selection — an all-in-one research auditing assistant
+```
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/Mingyue-Cheng/academic-search ~/.claude/skills/academic-search
-bash ~/.claude/skills/academic-search/scripts/check-deps.sh
+# Clone this repo to Claude Code skills directory
+git clone https://github.com/Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
+# Check dependencies
+bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh
 ```
 
-Once installed, you can immediately ask Claude Code to perform an academic search task, for example:
+Then directly ask Claude Code:
 
 ```text
-Search for top-venue papers on graph neural networks published after 2023, give me the top 10
+Audit this topic: research on graph neural network for time series forecasting, analyze frontiers and gaps
 ```
 
-## News
+Or:
 
-- `2026-05-01` Added multidisciplinary guidance: discipline routing, open-access PDF status, Crossref/OpenAlex/Unpaywall foundations, and publisher access-limit handling
-- `2026-04-05` Added CNKI support docs: search strategy, metadata schema fields, and a dedicated site pattern file
-- `2026-04-02` Released `v1.2.0`: frontier-first ranking, query expansion, direct PDF retrieval, and intent-aware two-pass search
-- `2026-04-02` Added a new case study: [Skill vs. No-Skill Search Comparison](docs/skill-usage-comparison.md)
-- `2026-04-02` Refreshed the README hero/content copy
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Core Features](#core-features)
-- [Installation](#installation)
-- [Requirements](#requirements)
-- [Testing](#testing)
-- [Usage Examples](#usage-examples)
-- [Multidisciplinary Usage](#multidisciplinary-usage)
-- [Platforms and Access Strategy](#platforms-and-access-strategy)
-- [CDP Proxy API](#cdp-proxy-api)
-- [Project Structure](#project-structure)
-- [Design Principles](#design-principles)
-- [License](#license)
-
-## Overview
-
-- **Platform coverage**: arXiv, Semantic Scholar, Crossref, OpenAlex, Unpaywall, Google Scholar, ACM DL, IEEE Xplore, PubMed, Papers with Code, and CNKI
-- **Operating principles**: API-first, structured-output-first, CDP only when necessary
-- **Typical tasks**: keyword search, author page parsing, citation analysis, PDF/BibTeX retrieval, and batch literature review
-- **Target users**: developers and researchers using Claude Code for academic search and research assistance
-
-## Why academic-search
-
-- **Built for academic workflows, not generic browsing**: prioritizes paper metadata, citations, PDFs, and BibTeX over raw webpage content
-- **Unified results across multiple sources**: reduces manual reconciliation by deduplicating and merging cross-platform outputs
-- **Controlled browser automation**: uses CDP only for platforms such as Google Scholar where no reliable API exists
-- **Suitable for research pipelines**: works for both single-paper lookups and larger literature review or benchmarking workflows
+```text
+Recommend 3 promising research topics in NLP
+```
 
 ---
 
-## Core Features
+## News
 
-| Capability | Description |
-|-----------|-------------|
-| Cross-disciplinary coverage | arXiv / Semantic Scholar / Crossref / OpenAlex / Unpaywall / Google Scholar / ACM DL / IEEE Xplore / PubMed / Papers with Code / CNKI |
-| API-first strategy | Public APIs first — no browser required when a reliable API exists |
-| Discipline routing | Selects sources, query expansion, ranking, and output fields for CS/AI, biomedicine, physics/math, chemistry/materials, social science/economics, and humanities/law |
-| CDP browser mode | Google Scholar and other anti-bot platforms via direct Chrome connection, inheriting your login session |
-| Two-pass search | First pass outputs a lightweight summary table; second pass deep-fetches full metadata only for confirmed papers. When user specifies count ("top N"), outputs directly without waiting |
-| Frontier-first ranking | **Recency first** (papers from last 6 months labeled `[new]` and surfaced to top) → citation count → CCF tier (as reference only) |
-| Query expansion | Automatically expands to 2-3 complementary queries (synonyms / sub-concepts / abbreviations), improving recall by 30-50% |
-| Venue tier labels | CS conferences/journals annotated with CCF ranking (A/B/C); ICLR labeled separately |
-| Result filtering | Filter by recency / citation count / venue tier / open PDF / code availability |
-| Structured metadata | Unified schema across all platforms; DOI as primary dedup key |
-| Open-access PDF retrieval | ArXiv ID present → construct link directly; S2 / Unpaywall / repository links as legal open-access fallbacks |
-| Full-text access status | Records `open_pdf`, `needs_institution`, `no_open_pdf`, `anti_bot_blocked`, `html_not_pdf`, or `unknown` instead of treating every publisher block as a generic failure |
-| Cross-disciplinary metadata | Crossref / OpenAlex / Unpaywall supplement DOI, venue, institution, citation, and open-access status across fields |
-| BibTeX export | Platform-native export + field-assembly fallback |
-| Code availability | Papers with Code API auto-fills code column for ML papers |
-| Citation graph | S2 citations/references API; Google Scholar citation counts as supplement |
-| Failure signal handling | 429 / timeout / empty results each have explicit direction adjustments — no blind retries |
-| Parallel sub-agents | Independent targets dispatched to parallel sub-agents sharing one Proxy, tab-level isolation |
-| Pre-seeded site knowledge | Platform and publisher patterns capture URL structures, selectors, access limits, and known pitfalls |
+- `2026-05-04` Project forked and initialized; detailed requirements document published
+- `2026-05-01` Upstream v1.2.0: multidisciplinary guidance, CNKI support, frontier-first ranking, query expansion, direct PDF retrieval
 
-<details>
-<summary>v1.2.0 Changes</summary>
+---
 
-- **Frontier-first ranking** — Recency as top priority: papers from last 6 months labeled `[new]` and surfaced first; citation count second; CCF tier as reference only
-- **Query expansion strategy** — Auto-expands to synonyms / sub-concepts / abbreviations; multi-query dedup improves recall by 30-50%
-- **Open-access PDF link** — ArXiv ID present → construct link directly, bypassing unreliable `openAccessPdf` field
-- **Intent-aware two-pass** — When user specifies "top N papers", outputs directly without stopping to confirm
-- **Failure signal table** — 429 / timeout / empty results each map to explicit direction adjustments
-- **Success criteria definition** — Define field requirements and count before executing; used as decision anchor throughout
-- **S2 API Key hint** — Recommends free key registration to avoid frequent 429s in single sessions
+## Two-Layer Architecture
 
-</details>
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  Application: research-topic-auditor                                 │
+│  Topic Audit · Frontier Analysis · Gap Identification               │
+│  Novelty Assessment · Multi-Agent Workflow · Topic Proposal         │
+│                                                                      │
+│  · 5-Step Topic Audit Workflow                                      │
+│  · Frontier Trend Analysis (citation burst, keyword trends)         │
+│  · Research Gap Identification (method-task matrix)                 │
+│  · 5-Dimension Novelty Assessment                                   │
+│  · Multi-Agent Orchestration                                        │
+│  · Structured Topic Proposal Report                                 │
+├──────────────────────────────────────────────────────────────────────┤
+│  Infrastructure: academic-search v1.2.0                             │
+│  Paper Search · Metadata Extraction · PDF/OA · BibTeX · Citations   │
+│                                                                      │
+│  · 10+ academic platforms (API / CDP)                               │
+│  · 6 discipline routing profiles                                    │
+│  · Query expansion · Frontier-first ranking · Two-pass search       │
+│  · OA PDF cascade · BibTeX export · Site patterns                   │
+│  · Parallel sub-agents · Failure signal handling                    │
+└──────────────────────────────────────────────────────────────────────┘
+```
 
-<details>
-<summary>v1.1.0 Changes</summary>
+## Core Capabilities
 
-- **Two-pass search strategy** — Lightweight summary table first; deep fetch only after core papers are confirmed
-- **Venue rankings reference** — New `references/venue-rankings.md` covering AI/ML/CV/NLP/Data Mining/IR/Systems/SE CCF tiers
-- **Explicit filtering capability** — New filtering section with 5 dimensions and output template
+### Topic Auditing (New ✨)
 
-</details>
+| Capability | Priority | Description |
+|-----------|:--------:|-------------|
+| Hotspot Detection | 🚧 Planned | Keyword frequency trends, Citation Burst detection |
+| Literature Clustering | 🚧 Planned | Semantic clustering, research direction tree |
+| Trend Analysis | 🚧 Planned | Yearly hotspot evolution, emerging direction alerts |
+| Research Gap Identification | 🚧 Planned | Method-task matrix, cross-disciplinary gaps |
+| Paper Recommendation | 🚧 Planned | Seed-paper based recommendation |
+| Survey Generation | 🚧 Planned | Search → cluster → structured survey draft |
+| Academic Network Analysis | 🚧 Planned | Author/institution collaboration networks |
+
+See [需求清单与能力规划](需求清单与能力规划.md) (Chinese) for the complete roadmap.
+
+### Search & Acquisition (Provided by upstream ✅)
+
+- **Discipline routing**: CS/AI, Medicine, Physics, Chemistry, Social Sciences, Humanities
+- **Two-pass strategy**: lightweight summary → deep fetch for confirmed papers
+- **Query expansion**: 2-3 complementary queries, 30-50% recall improvement
+- **Frontier-first ranking**: recency → citations → venue tier
+- **Cross-platform dedup**: DOI/arXiv ID as primary key
+- **OA PDF cascade**: arXiv direct → S2 → OpenAlex → Unpaywall → domain repositories
+- **Full-text status**: `open_pdf`, `needs_institution`, `no_open_pdf`, `anti_bot_blocked`, `html_not_pdf`
+- **BibTeX export**: native + field assembly dual path
+- **Code availability**: Papers with Code API auto-fill
+- **Failure signal handling**: 429 / timeout / empty results mapped to explicit adjustments
+- **CDP browser mode**: Google Scholar, CNKI
+- **Pre-seeded site knowledge**: 14+ platform and publisher pattern files
+
+---
+
+## 5-Step Audit Workflow
+
+```
+Step 1 ─ Literature Search
+  ├── Multi-platform parallel search (arXiv, S2, PubMed, CNKI...)
+  ├── Discipline routing + Query expansion
+  ├── Two-pass strategy: summary → deep pull
+  └── Output: structured paper list + citations
+
+Step 2 ─ Frontier Analysis
+  ├── Yearly paper/citation trends
+  ├── Citation Burst detection
+  ├── Keyword frequency evolution
+  ├── Venue distribution analysis
+  └── Output: trend report + hotspot map
+
+Step 3 ─ Gap Identification
+  ├── Method-task matrix construction
+  ├── Cross-disciplinary gap detection
+  ├── Future Work mining from surveys
+  ├── Dataset/benchmark coverage analysis
+  └── Output: gap list + opportunity scores
+
+Step 4 ─ Novelty Assessment
+  ├── Method novelty (first application to task/domain)
+  ├── Scenario novelty (new problem setting)
+  ├── Combinatorial novelty (non-trivial combination)
+  ├── Feasibility (data/compute/domain knowledge)
+  └── Output: novelty scores + differentiation report
+
+Step 5 ─ Topic Proposal
+  ├── Generate candidate directions
+  ├── Feasibility assessment per direction
+  ├── Resource estimation
+  ├── Risk analysis
+  └── Output: structured topic proposal report
+```
 
 ---
 
 ## Installation
 
-**Option 1: Let Claude install it automatically**
-
-```
-Install this skill for me: https://github.com/Mingyue-Cheng/academic-search
-```
-
-**Option 2: Manual**
+This Skill requires the upstream search infrastructure (academic-search) plus the auditing layer.
 
 ```bash
+# Step 1: Install upstream search skill (academic-search)
 git clone https://github.com/Mingyue-Cheng/academic-search ~/.claude/skills/academic-search
+
+# Step 2: Install this skill (research-topic-auditor)
+git clone https://github.com/Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
+
+# Step 3: Check environment dependencies
+bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh
 ```
 
-**Option 3: Local symlink (for development)**
+**Requirements (CDP mode only)**: API platforms (arXiv, S2, PubMed, etc.) work out of the box. Google Scholar requires Chrome remote debugging:
 
-```bash
-# Run inside the academic-search/ directory
-ln -sfn "$(pwd)" ~/.claude/skills/academic-search
-```
+1. Open `chrome://inspect/#remote-debugging`
+2. Check **Allow remote debugging for this browser instance**
 
-## Requirements
+---
 
-arXiv, Semantic Scholar, PubMed, and other API-based platforms work out of the box with no setup.
+## Platform Access Strategy
 
-CDP mode requires **Node.js 22+** and Chrome remote debugging:
-
-1. Open `chrome://inspect/#remote-debugging` in Chrome's address bar
-2. Check **Allow remote debugging for this browser instance** (browser restart may be required)
-
-Environment check (the agent runs this automatically — no need to run manually):
-
-```bash
-bash ~/.claude/skills/academic-search/scripts/check-deps.sh
-```
-
-## Testing
-
-Local regression test:
-
-```bash
-cd academic-search
-make test
-```
-
-Pre-release regression test:
-
-```bash
-cd academic-search
-make test-release
-```
-
-If `3456` or the default test port `4568` is already occupied, override it explicitly:
-
-```bash
-cd academic-search
-make test CDP_PROXY_PORT=4570
-make test-release CDP_PROXY_PORT=4570
-```
+| Platform | Access Method |
+|----------|--------------|
+| arXiv | REST API |
+| Semantic Scholar | REST API |
+| Crossref | REST API |
+| OpenAlex | REST API |
+| Unpaywall | REST API |
+| PubMed | NCBI E-utilities |
+| Papers with Code | REST API |
+| ACM DL | WebFetch + Jina |
+| IEEE Xplore | WebFetch / Jina / Official API |
+| ScienceDirect / Wiley / Springer / ACS | OA status + institution access notice |
+| **Google Scholar** | **CDP browser** |
+| **CNKI** | **CDP browser** |
 
 ---
 
 ## Usage Examples
 
-After installation, just ask Claude Code to perform academic search tasks — the skill takes over automatically:
+Topic auditing:
 
-```
-Search for top-venue papers on graph neural networks published after 2023, give me the top 10
+```text
+Audit this topic: research on graph neural network for time series forecasting
+Analyze the frontiers and gaps of large language models in healthcare
+Evaluate the novelty of this idea: using diffusion models for molecular conformation generation
+Recommend 3 promising research topics in NLP
 ```
 
-```
+Underlying search capabilities are also available:
+
+```text
 Find all papers by Yann LeCun on Semantic Scholar, sorted by citation count
 ```
-
-```
-Get the BibTeX for this paper: https://arxiv.org/abs/1706.03762
-```
-
-```
-Look up BERT, GPT-3, and T5 in parallel — give me a comparison table with metadata and citation counts
-```
-
-```
-Check Google Scholar for the citation count of "Attention Is All You Need"
-```
-
----
-
-## Multidisciplinary Usage
-
-Academic-Search now selects sources, query expansion, ranking rules, and output fields by discipline:
-
-| Discipline | Focus |
-|------------|-------|
-| CS / AI | arXiv, Semantic Scholar, ACM/IEEE, Papers with Code, CCF/top-venue labels |
-| Medicine / Life Science | PubMed, Europe PMC, MeSH, evidence ranking for systematic reviews and RCTs |
-| Physics / Mathematics | arXiv categories, MSC, NASA ADS / INSPIRE HEP path reserved |
-| Chemistry / Materials | Crossref, OpenAlex, ChemRxiv, ACS/RSC/Springer/Wiley access status |
-| Social Science / Economics | JEL, RePEc/NBER/SSRN, method type, working-paper status |
-| Humanities / Law | Books, chapters, archives, legal sources, with citation count as a secondary signal |
-
-See [Multidisciplinary Improvement Analysis](docs/multidisciplinary-improvement-analysis.md) for the planning notes behind this expansion. For systematic reviews, seminal-paper lists, open full-text checks, or discipline-specific search tasks, the skill progressively loads references from `references/disciplines/`, `references/rankings/`, `references/workflows/`, and `references/site-patterns/`.
-
----
-
-## Platforms and Access Strategy
-
-| Platform | Access Method | Requires Chrome Debugging |
-|----------|--------------|:------------------------:|
-| arXiv | REST API | No |
-| Semantic Scholar | REST API | No |
-| Crossref | REST API | No |
-| OpenAlex | REST API | No |
-| Unpaywall | REST API | No |
-| PubMed | NCBI E-utilities | No |
-| Papers with Code | REST API | No |
-| ACM DL | WebFetch + Jina | No |
-| IEEE Xplore | WebFetch / Jina / Official API | No |
-| ScienceDirect / Wiley / Springer / ACS | Open-access status check + institution-access notice | No |
-| Google Scholar | CDP browser | **Yes** |
-| CNKI | CDP browser | **Yes** |
-
-Full-text retrieval only uses legal open-access routes. A reachable publisher page does not mean that the PDF is downloadable; institutional entitlements, Cloudflare checks, CAPTCHA pages, or HTML responses from PDF routes are reported as access status rather than bypassed.
-
----
-
-## CDP Proxy API
-
-The Proxy connects to Chrome via WebSocket (compatible with the `chrome://inspect` method — no command-line flags needed) and exposes an HTTP API:
-
-```bash
-# The agent manages the Proxy lifecycle automatically — no manual startup needed
-bash ~/.claude/skills/academic-search/scripts/check-deps.sh
-
-# Page operations
-curl -s "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/new?url=https://scholar.google.com"           # Open new tab
-curl -s -X POST "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/eval?target=ID" -d 'document.title'  # Execute JS
-curl -s -X POST "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/click?target=ID" -d 'button.submit'  # Click element
-curl -s "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/screenshot?target=ID&file=/tmp/shot.png"      # Screenshot
-curl -s "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/scroll?target=ID&direction=bottom"            # Scroll
-curl -s "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/close?target=ID"                              # Close tab
-```
-
-See `references/cdp-api.md` for the full API reference.
 
 ---
 
 ## Project Structure
 
 ```
-academic-search/
-├── Makefile                          # Standard test entry (make test / make test-release)
-├── SKILL.md                          # Main instruction (search philosophy + platform matrix + capabilities)
-├── README.md                         # Chinese README
-├── README.en.md                      # English README (this file)
-├── docs/
-│   ├── skill-usage-comparison.md
-│   └── multidisciplinary-improvement-analysis.md
+research-topic-auditor/
+├── SKILL.md                        # Main instruction file
+├── 需求清单与能力规划.md            # Requirements & roadmap (Chinese)
+├── .claude/settings.json           # Claude Code project config
 ├── scripts/
-│   ├── cdp-proxy.mjs                 # CDP Proxy HTTP server (connects to user's Chrome)
-│   ├── check-deps.sh                 # Environment check + auto-start Proxy
-│   ├── self-test.sh                  # Base local regression test (requires Chrome remote debugging)
-│   └── release-test.sh               # Pre-release regression test (concurrency / invalid target / binary response)
-└── references/
-    ├── api-cookbook.md               # Multi-platform call reference (curl examples + field mappings)
-    ├── metadata-schema.md            # Cross-platform unified metadata schema + dedup rules + BibTeX templates
-    ├── venue-rankings.md             # CS conference/journal CCF tier reference
-    ├── cdp-api.md                    # CDP Proxy HTTP API complete reference
-    ├── disciplines/                  # Discipline routing and query expansion profiles
-    ├── rankings/                     # Non-CS evidence/source ranking references
-    ├── workflows/                    # Systematic review and literature workflow templates
-    └── site-patterns/
-        ├── arxiv.org.md
-        ├── semanticscholar.org.md
-        ├── scholar.google.com.md
-        ├── dl.acm.org.md
-        ├── ieeexplore.ieee.org.md
-        ├── pubmed.ncbi.nlm.nih.gov.md
-        ├── paperswithcode.com.md
-        ├── cnki.net.md
-        ├── sciencedirect.com.md
-        ├── onlinelibrary.wiley.com.md
-        ├── link.springer.com.md
-        └── pubs.acs.org.md
+│   ├── cdp-proxy.mjs               # CDP Proxy
+│   ├── check-deps.sh               # Dependency check
+│   ├── self-test.sh                # Local regression test
+│   └── release-test.sh             # Pre-release test
+├── agents/
+│   ├── openai.yaml
+│   └── auditor/                    # Multi-agent templates
+│       ├── searcher.md
+│       ├── frontier-analyst.md
+│       ├── gap-analyst.md
+│       ├── novelty-judge.md
+│       └── synthesizer.md
+├── references/
+│   ├── api-cookbook.md
+│   ├── metadata-schema.md
+│   ├── venue-rankings.md
+│   ├── cdp-api.md
+│   ├── disciplines/
+│   ├── rankings/
+│   ├── site-patterns/
+│   ├── workflows/
+│   └── auditor/
+│       ├── frontier-analysis.md
+│       ├── gap-identification.md
+│       ├── novelty-assessment.md
+│       ├── topic-proposal.md
+│       └── multi-agent-workflow.md
+├── workflows/
+│   └── topic-audit.md
+└── docs/
+    ├── skill-usage-comparison.md
+    └── multidisciplinary-improvement-analysis.md
 ```
-
----
 
 ## Design Principles
 
-> Skill = philosophy + technical facts, not an operations manual. Explain the tradeoffs and let the AI decide — don't do its reasoning for it.
+1. **Two-layer decoupling**: infrastructure = "find and fetch", application = "analyze and judge"
+2. **Evidence-driven**: all conclusions must be backed by paper citations
+3. **Gap = opportunity**: research gap identification is the most valuable output
+4. **Multi-agent orchestration**: complex tasks decomposed to parallel specialized agents
+5. **Progressive deepening**: broad scan first, deep analysis second
+6. **Transparent scoring**: all scores must be explainable and attributable
 
-- **The bottleneck is filtering, not searching**: Output a lightweight summary table first; let the user identify core papers before deep-fetching — avoids redundant full metadata pulls
-- **Frontier-first ranking**: Recency → citations → CCF tier. Papers from the last 6 months are labeled `[new]` and surfaced to the top — new papers in active research areas have naturally low citation counts but represent the latest advances
-- **API-first**: Never simulate a browser for platforms that offer a public API — faster, more stable, no anti-bot exposure
-- **CDP is the last resort, not the default**: Only used when no reliable API exists (Google Scholar)
-- **Structured output**: All results converted to a unified schema, DOI as dedup key, directly exportable as BibTeX
+## Related Resources
 
-📋 **Case Study**: [Skill vs. No-Skill Search Comparison](docs/skill-usage-comparison.md) — A controlled experiment searching "Time Series Agent" papers with and without the skill, documenting execution paths, result differences, and key takeaways.
-- **Site knowledge reuse**: platform and publisher operation experience ships pre-seeded and can be updated across sessions
-
----
+- [需求清单与能力规划](需求清单与能力规划.md) — Complete requirements document with 60+ items and capability matrix
+- [Upstream project](https://github.com/Mingyue-Cheng/academic-search) — Original project by Mingyue Cheng
 
 ## License
 
-MIT · Author: Mingyue Cheng
+MIT · Forked from [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search)
