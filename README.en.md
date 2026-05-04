@@ -1,10 +1,13 @@
+> 🚧 **Forked from [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search) v1.2.0**
+> Extended with **Topic Discovery & Research Frontier Analysis** capabilities.
+
 <table>
   <tr>
     <td width="220" valign="middle">
       <img src="assets/logo.png" alt="academic-search logo" width="180" />
     </td>
     <td valign="middle">
-      <h1>academic-search skill</h1>
+      <h1>Academic Search & Topic Discovery</h1>
     </td>
   </tr>
 </table>

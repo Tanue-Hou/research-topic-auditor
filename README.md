@@ -1,41 +1,50 @@
 <p align="center">
   <img src="assets/logo.png" alt="academic-search" width="80" style="vertical-align:middle; margin-right:12px;" />
-  <strong style="font-size:2em; vertical-align:middle;">Academic-Search Skill</strong>
+  <strong style="font-size:2em; vertical-align:middle;">Academic Search & Topic Discovery</strong>
 </p>
 
-<p align="center">想要在 Claude Code 里直接调研顶刊论文？Academic-Search Skill 帮你实现。</p>
+<p align="center">学术搜索 + 选题发现 —— 不只搜论文，更帮你找方向</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v1.2.0-0f766e" />
+  <img src="https://img.shields.io/badge/version-v1.2.1-0f766e" />
   <img src="https://img.shields.io/badge/license-MIT-1f2937" />
-  <img src="https://img.shields.io/github/stars/Mingyue-Cheng/academic-search?style=social" />
+  <img src="https://img.shields.io/badge/status-building-yellow" />
 </p>
 
 <p align="center">🌐 <a href="README.en.md">English</a> | 简体中文</p>
 
 ---
 
+> 🚧 **本项目基于 [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search) v1.2.0 进行扩展开发。**
+> 原项目提供了一个出色的多平台学术搜索基础设施。我们在此基础上，重点构建 **选题发现与研究前沿分析** 能力。
+
 ## News
 
-- `2026-05-01` 新增多学科使用指引：学科路由、开放获取 PDF 状态、Crossref/OpenAlex/Unpaywall 跨学科底座与主要出版商访问限制
-- `2026-04-05` 新增 CNKI（知网）支持文档：补充检索策略、metadata schema 字段与 site pattern 经验文件
-- `2026-04-02` 发布 `v1.2.0`：新增前沿性优先排序、Query 扩展、PDF 直取、意图感知两遍搜索
-- `2026-04-02` 新增案例文档：[使用 Skill vs 未使用 Skill 的搜索对比实验](docs/skill-usage-comparison.md)
-- `2026-04-02` README 视觉与说明同步刷新
+- `2026-05-04` Fork 并初始化项目，发布详细需求清单与能力规划
+- `2026-05-01` 上游 v1.2.0：多学科使用指引、CNKI 支持、前沿性排序、Query 扩展、PDF 直取
 
 ---
 
 🚀 **覆盖全**：arXiv、Semantic Scholar、OpenAlex、Crossref、Unpaywall、Google Scholar、CNKI... 多学科平台协同检索。
 📊 **功能强**：论文检索、引用追踪、BibTeX 导出、多源去重，一气呵成。  
 📑 **获取稳**：开放获取 PDF 级联获取，明确标注机构权限和反爬限制。  
-🎯 **策略精**：时效性优先排序，自带 CCF 等级标注，只看最值得看的顶会干货。
+🎯 **策略精**：时效性优先排序，自带 CCF 等级标注，只看最值得看的顶会干货。  
+💡 **选题新**：研究热点检测、Citation Burst 分析、文献聚类、研究空白识别、论文推荐。
 
-> **Academic-Search：重新定义 AI 驱动的学术研究。**
+## 项目定位
+
+```
+Academic Search Skill (上游)      → 多平台学术搜索基础设施
+         +
+Topic Discovery Capability (新增) → 选题发现与研究前沿分析
+         =
+Academic Search & Topic Discovery → 从搜索到选题的一站式学术研究助手
+```
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/Mingyue-Cheng/academic-search ~/.claude/skills/academic-search
+git clone https://github.com/your-username/academic-search ~/.claude/skills/academic-search
 bash ~/.claude/skills/academic-search/scripts/check-deps.sh
 ```
 
@@ -49,30 +58,45 @@ bash ~/.claude/skills/academic-search/scripts/check-deps.sh
 
 ## 核心能力
 
+### 搜索与获取（由上游提供 ✅）
+
 **检索与筛选**
 - 学科路由：按 CS/AI、医学/生命科学、物理/数学、化学/材料、社科/经济、人文/法律选择检索源和评价标准
-- 两遍策略：先输出轻量摘要表，用户确认核心论文后再深拉完整元数据；用户明确数量时直接输出，无需二次确认
-- Query 扩展：自动展开 2-3 个互补 query（同义词 / 子概念 / 缩写全称），覆盖率比单 query 提升 30-50%
-- 前沿性排序：**时效性优先**（近 6 月 `[新]` 置顶）→ 引用数 → CCF 等级（参考项），不因引用数低埋没最新进展
+- 两遍策略：先输出轻量摘要表，用户确认核心论文后再深拉完整元数据
+- Query 扩展：自动展开 2-3 个互补 query，覆盖率比单 query 提升 30-50%
+- 前沿性排序：**时效性优先**（近 6 月 `[新]` 置顶）→ 引用数 → CCF 等级
 - 多平台结果以 DOI/arXiv ID 为主键自动去重合并
 
 **数据获取**
-- PDF：开放获取 PDF 级联获取；arXiv ID 存在即直接构造链接，不依赖 S2 `openAccessPdf`（该字段经常为 null）
-- 全文状态：标注 `open_pdf` / `needs_institution` / `no_open_pdf` / `anti_bot_blocked` / `html_not_pdf`，不绕过付费墙
-- BibTeX：平台原生导出 + 字段拼装双路径
-- 跨学科元数据：Crossref / OpenAlex / Unpaywall 补 DOI、作者机构、开放获取状态和引用关系
-- 代码：Papers with Code API 自动补全代码可用性列
-- 引用关系：S2 引用/被引 API，Google Scholar 引用数补充
+- OA PDF 级联获取（arXiv 直链 → S2 → OpenAlex → Unpaywall → 领域预印本）
+- 全文状态标注：`open_pdf` / `needs_institution` / `no_open_pdf` / `anti_bot_blocked` / `html_not_pdf`
+- BibTeX 导出：平台原生导出 + 字段拼装双路径
+- 跨学科元数据：Crossref / OpenAlex / Unpaywall 补全
+- 代码链接：Papers with Code API 自动补全
 
 **可靠性与扩展**
-- 失败信号处理：429 / 超时 / 空结果各有对应调整策略，不在同一条路上盲目重试
-- CDP 浏览器模式：直连用户日常 Chrome，天然携带登录态，用于 Google Scholar 等反爬平台
-- 并行分治：多目标分发子 Agent 并行执行，共享 Proxy，tab 级隔离
-- 站点经验预置：平台与出版商操作经验预置，跨 session 积累更新
+- 失败信号处理：429 / 超时 / 空结果各有对应策略
+- CDP 浏览器模式：Google Scholar、CNKI 等强反爬平台
+- 并行分治：多目标分发子 Agent 并行执行
+- 站点经验预置：14+ 平台出版商操作经验文件
+
+### 选题发现（新增 🚧）
+
+| 能力 | 状态 | 说明 |
+|------|:----:|------|
+| 热点检测 | 🚧 规划中 | 关键词频率趋势、Citation Burst 检测 |
+| 文献聚类 | 🚧 规划中 | 语义聚类、研究方向树 |
+| 趋势分析 | 🚧 规划中 | 年度热点变迁、新兴方向预警 |
+| 研究空白识别 | 🚧 规划中 | 方法-任务矩阵、交叉方向空白区 |
+| 论文推荐 | 🚧 规划中 | 基于种子论文的推荐 |
+| 综述生成 | 🚧 规划中 | 搜索→聚类→结构化综述初稿 |
+| 学术网络分析 | 🚧 规划中 | 作者/机构合作网络、引用网络 |
+
+详见 [需求清单与能力规划](需求清单与能力规划.md) 了解完整路线图。
 
 ## 多学科使用方式
 
-Academic-Search 现在按学科选择检索源、query expansion、排序规则和输出字段：
+按学科选择检索源、query expansion、排序规则和输出字段：
 
 | 学科 | 重点能力 |
 |------|----------|
@@ -83,40 +107,16 @@ Academic-Search 现在按学科选择检索源、query expansion、排序规则�
 | 社科 / 经济 | JEL、RePEc/NBER/SSRN、方法类型和工作论文状态 |
 | 人文 / 法律 | 图书/章节/档案/法律来源优先，引用数仅作辅助 |
 
-详细规划见 [Academic-Search 面向多学科用户的完善建议](docs/multidisciplinary-improvement-analysis.md)。执行系统综述、核心论文清单、开放全文判断等任务时，Skill 会按 `references/disciplines/`、`references/rankings/`、`references/workflows/` 和 `references/site-patterns/` 逐步加载需要的参考文件。
-
-<details>
-<summary>v1.2.0 更新内容</summary>
-
-- **前沿性排序** — 时效性优先：近 6 月论文 `[新]` 置顶，引用数次之，CCF 等级作参考项
-- **Query 扩展策略** — 自动展开同义词 / 子概念 / 缩写全称，多 query 去重合并
-- **PDF 直取** — arXiv ID 存在即直接构造链接，不依赖经常为 null 的 `openAccessPdf`
-- **意图感知两遍策略** — 用户明确说"前 N 篇"时直接输出，无需停下等确认
-- **失败信号处理** — 429 / 超时 / 空结果各对应明确调整方向
-- **成功标准定义** — 执行前先明确字段需求和数量，作为全程决策锚点
-- **S2 API Key 提示** — 建议申请免费 Key 避免单 session 频繁 429
-
-</details>
-
-<details>
-<summary>v1.1.0 更新内容</summary>
-
-- **两遍搜索策略** — 轻量摘要表先行，避免无效完整抓取
-- **Venue 等级标注** — 新增 `references/venue-rankings.md`，覆盖 AI/CV/NLP/数据挖掘等方向 CCF 分级
-- **结果筛选能力** — 5 个筛选维度 + 结论格式模板
-
-</details>
-
 ---
 
 ## 安装
 
 ```bash
 # 方式一：手动安装
-git clone https://github.com/Mingyue-Cheng/academic-search ~/.claude/skills/academic-search
+git clone https://github.com/your-username/academic-search ~/.claude/skills/academic-search
 
 # 方式二：让 Claude 安装
-# 帮我安装这个 skill：https://github.com/Mingyue-Cheng/academic-search
+# 帮我安装这个 skill：https://github.com/your-username/academic-search
 
 # 方式三：本地开发软链接（在项目目录内执行）
 ln -sfn "$(pwd)" ~/.claude/skills/academic-search
@@ -152,7 +152,50 @@ Open API 优先，Google Scholar 与 CNKI 等无公开 API 或强反爬平台需
 
 ---
 
-## 使用示例
+## 项目结构
+
+```
+academic-search/
+├── SKILL.md                    # 主指令文件（搜索哲学、平台矩阵、核心能力）
+├── 需求清单与能力规划.md        # 完整需求文档与路线图
+├── scripts/
+│   ├── cdp-proxy.mjs           # CDP Proxy（直连用户 Chrome）
+│   ├── check-deps.sh           # 环境检查 + 自动启动 Proxy
+│   ├── self-test.sh            # 本地回归测试
+│   └── release-test.sh         # 发布前测试
+├── agents/
+│   └── openai.yaml             # OpenAI 兼容 API 配置
+├── references/
+│   ├── api-cookbook.md         # 多平台调用速查
+│   ├── metadata-schema.md      # 跨平台统一元数据 schema
+│   ├── venue-rankings.md       # CS 会议/期刊 CCF 分级速查
+│   ├── cdp-api.md              # CDP Proxy HTTP API 完整参考
+│   ├── disciplines/            # 多学科学科路由与 query expansion
+│   ├── rankings/               # 非 CS 学科评价/证据等级
+│   ├── workflows/              # 系统综述、核心论文清单等工作流
+│   └── site-patterns/          # 平台与出版商操作经验文件
+└── docs/
+    ├── skill-usage-comparison.md                  # 使用/未使用 Skill 的搜索对比实验
+    └── multidisciplinary-improvement-analysis.md  # 多学科能力完善建议
+```
+
+## 功能路线图
+
+```
+Phase 1 (1-4周)            Phase 2 (4-8周)           Phase 3 (8-12周)
+┌────────────────┐        ┌────────────────┐        ┌────────────────┐
+│ 平台完善       │        │ 选题发现核心   │        │ 扩展与体验     │
+│                │        │                │        │                │
+│ · 万方/维普    │        │ · Citation     │        │ · 综述初稿生成 │
+│ · 中英互译     │        │   Burst 检测   │        │ · 网络分析     │
+│ · RIS/Zotero   │ ─────→ │ · 研究空白识别  │ ─────→ │ · MCP Server   │
+│ · 意图拆解     │        │ · 论文推荐     │        │ · 会话持久化   │
+│ · 论文主题聚类 │        │ · 基金关联     │        │ · 定时检索     │
+│ · 热点变迁分析 │        │ · 插件接口     │        │ · 交互筛选     │
+└────────────────┘        └────────────────┘        └────────────────┘
+```
+
+## 使用方法
 
 ```
 帮我找 Yann LeCun 在 Semantic Scholar 上的所有论文，按引用数排序
@@ -165,6 +208,9 @@ Open API 优先，Google Scholar 与 CNKI 等无公开 API 或强反爬平台需
 ```
 ```
 去 Google Scholar 查一下 "attention is all you need" 的引用数
+```
+```
+帮我分析一下 graph neural network 近两年的研究热点和发展趋势
 ```
 
 ---
@@ -185,46 +231,23 @@ curl -s "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/close?target=ID"              
 
 ---
 
-## 项目结构
-
-```
-academic-search/
-├── SKILL.md                    # 主指令文件（搜索哲学、平台矩阵、核心能力）
-├── scripts/
-│   ├── cdp-proxy.mjs           # CDP Proxy（直连用户 Chrome）
-│   ├── check-deps.sh           # 环境检查 + 自动启动 Proxy
-│   ├── self-test.sh            # 本地回归测试
-│   └── release-test.sh         # 发布前测试
-├── references/
-│   ├── api-cookbook.md         # 多平台调用速查
-│   ├── metadata-schema.md      # 跨平台统一元数据 schema
-│   ├── venue-rankings.md       # CS 会议/期刊 CCF 分级速查
-│   ├── cdp-api.md              # CDP Proxy HTTP API 完整参考
-│   ├── disciplines/            # 多学科学科路由与 query expansion
-│   ├── rankings/               # 非 CS 学科评价/证据等级
-│   ├── workflows/              # 系统综述、核心论文清单等工作流
-│   └── site-patterns/          # 平台与出版商操作经验文件
-└── docs/
-    ├── skill-usage-comparison.md                  # 使用/未使用 Skill 的搜索对比实验
-    └── multidisciplinary-improvement-analysis.md  # 多学科能力完善建议
-```
-
-测试：`make test` / `make test-release`（端口冲突时加 `CDP_PROXY_PORT=4570`）
-
----
-
 ## 设计理念
 
 > Skill = 哲学 + 技术事实，不是操作手册。讲清 tradeoff 让 AI 自己选，不替它推理。
 
 搜索的瓶颈不在"搜"，在"筛"。核心策略是先输出轻量摘要表，让用户确认核心论文后再深拉，避免无效的完整元数据抓取。
 
-排序优先级：**时效性（近 6 月 `[新]` 置顶）→ 引用数 → CCF 等级（参考项）**。前沿方向的新论文引用数天然偏低，以时效性为首要维度确保最新进展不被埋没。API 优先、CDP 作为兜底，结果统一结构化输出。
+排序优先级：**时效性（近 6 月 `[新]` 置顶）→ 引用数 → CCF 等级（参考项）**。前沿方向的新论文引用数天然偏低，以时效性为首要维度确保最新进展不被埋没。
 
-📋 [使用 Skill vs 未使用 Skill 的搜索对比实验](docs/skill-usage-comparison.md) — 以 "Time Series Agent" 为例，完整记录两次执行差异与关键结论。
+**选题发现的瓶颈不在"找论文"，在"找方向"。** 我们正在构建的热点检测、空白识别、文献聚类和论文推荐能力，旨在帮助研究者从文献海洋中快速定位有潜力的研究方向。
 
 ---
 
+## 相关资源
+
+- [需求清单与能力规划](需求清单与能力规划.md) — 完整需求文档，60+ 需求项的优先级、工作量评估与能力矩阵
+- [上游项目](https://github.com/Mingyue-Cheng/academic-search) — 本 fork 的原始项目，感谢 [Mingyue-Cheng](https://github.com/Mingyue-Cheng) 的出色工作
+
 ## License
 
-MIT · 作者：Mingyue Cheng
+MIT · Forked from [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search)
