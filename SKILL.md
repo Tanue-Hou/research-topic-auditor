@@ -40,7 +40,7 @@ metadata:
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
-**前置要求**：本 Skill 依赖 academic-search 提供搜索基础设施。运行 `scripts/check-deps.sh` 确认环境就绪。
+**前置要求**：本 Skill 依赖 [academic-search](https://github.com/Mingyue-Cheng/academic-search)（作者：Mingyue Cheng，MIT License）提供搜索基础设施。运行 `scripts/check-deps.sh` 确认环境就绪。
 
 ---
 

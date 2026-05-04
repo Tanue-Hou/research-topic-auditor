@@ -15,8 +15,8 @@
 
 ---
 
-> 🚧 **本项目基于 [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search) v1.2.0 进行扩展开发。**
-> 原项目提供了一个出色的多平台学术搜索基础设施。我们在此基础上，重点构建 **选题发现与研究前沿分析** 能力。
+> 🚧 **本项目基于 [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search) v1.2.0（作者：Mingyue Cheng，MIT License）进行扩展开发。**
+> 原项目 `academic-search` 提供了一个出色的多平台学术搜索基础设施。**research-topic-auditor** 在此基础上构建 **选题发现与研究前沿分析** 能力，形成双层架构：底层搜索 + 上层审查。
 
 ## News
 

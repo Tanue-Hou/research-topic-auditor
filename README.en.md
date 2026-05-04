@@ -1,5 +1,7 @@
-> 🚧 **Forked from [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search) v1.2.0**
-> Extended with **Topic Discovery & Research Frontier Analysis** capabilities.
+> 🚧 **Built on top of [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search) v1.2.0 by Mingyue Cheng (MIT License).**
+> The upstream `academic-search` provides a solid multi-platform paper search infrastructure.
+> **research-topic-auditor** extends it with **Topic Discovery & Research Frontier Analysis**,
+> forming a two-layer architecture: search infrastructure + topic auditing.
 
 <table>
   <tr>
