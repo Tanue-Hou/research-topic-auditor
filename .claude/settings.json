@@ -1,0 +1,31 @@
+{
+  "name": "research-topic-auditor",
+  "version": "0.1.0",
+  "description": "A Claude Skill for evidence-based research topic auditing: literature search, frontier analysis, gap identification, novelty assessment, and algorithmic topic proposal.",
+  "skills": [
+    "academic-search",
+    "research-topic-auditor"
+  ],
+  "workspaces": {
+    "dev": {
+      "branch": "dev",
+      "description": "日常开发版本"
+    },
+    "stable": {
+      "branch": "main",
+      "description": "稳定发布版本"
+    }
+  },
+  "features": {
+    "topic_audit": {
+      "enabled": true,
+      "modules": [
+        "literature_search",
+        "frontier_analysis",
+        "gap_identification",
+        "novelty_assessment",
+        "topic_proposal"
+      ]
+    }
+  }
+}

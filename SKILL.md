@@ -1,361 +1,279 @@
 ---
-name: academic-search
+name: research-topic-auditor
 description: |
-  学术论文搜索、引用分析、开放获取 PDF 判定与结构化元数据提取专用 Skill。Use when the user asks to search/find papers, do literature review/survey/systematic review/PRISMA work, get citation counts, export BibTeX/RIS-style references, find papers by author, inspect PDF/open-access availability, or work with arXiv, Semantic Scholar, OpenAlex, Crossref, Unpaywall, PubMed, Google Scholar, ACM DL, IEEE Xplore, Papers with Code, CNKI, ScienceDirect, Wiley, Springer, ACS, MeSH, JEL, MSC, or ACM CCS.
+  科研选题审查专用 Skill。Use when the user asks to: audit/evaluate a research topic, do literature review for topic selection, assess novelty/innovation of a research idea, identify research gaps, analyze frontier trends, generate algorithmic topic proposals, evaluate feasibility of a research direction, or perform systematic literature analysis for topic validation. 触发词：选题审查、选题评估、研究空白、创新性判断、前沿分析、课题可行性、topic audit、novelty assessment、gap analysis、research frontier.
 metadata:
-  version: "1.2.0"
+  version: "0.1.0"
+  built_on: "academic-search v1.2.0"
+  architecture: "two-layer"
+  layers:
+    infrastructure: "academic-search — 多平台论文检索、元数据提取、PDF/OA获取、BibTeX导出、引用关系分析"
+    application: "research-topic-auditor — 科研审查、前沿分析、空白识别、创新性判断、多智能体选题建议"
 ---
 
-# academic-search Skill
+# Research Topic Auditor — 科研选题审查 Skill
 
-## 前置检查
+## 架构概览
 
-在开始前，检查环境就绪状态：
+本 Skill 采用双层架构：
 
-```bash
-bash ~/.claude/skills/academic-search/scripts/check-deps.sh
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  应用层：research-topic-auditor                                      │
+│  科研审查 · 前沿分析 · 空白识别 · 创新性判断 · 多智能体选题建议      │
+│                                                                      │
+│  · 选题审查工作流 (Topic Audit Workflow)                             │
+│  · 前沿趋势分析 (Frontier Trend Analysis)                            │
+│  · 研究空白识别 (Research Gap Identification)                        │
+│  · 创新性评估 (Novelty Assessment)                                   │
+│  · 多智能体协作 (Multi-Agent Collaboration)                          │
+│  · 选题建议报告生成 (Topic Proposal Generation)                      │
+├──────────────────────────────────────────────────────────────────────┤
+│  基础设施层：academic-search v1.2.0                                  │
+│  论文检索 · 元数据提取 · PDF/OA · BibTeX · 引用关系 · 多学科路由     │
+│                                                                      │
+│  · 10+ 学术平台 API / CDP                                            │
+│  · 6 大学科路由                                                      │
+│  · Query 扩展 · 前沿性排序 · 两遍搜索 · 跨平台去重                   │
+│  · OA PDF 级联获取 · BibTeX 导出 · 站点经验                          │
+│  · 并行分治 · 失败信号处理                                           │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
-- **Node.js 22+**：必需（用于 CDP 浏览器模式）。仅使用 API 平台时可不检查。
-- **Chrome remote-debugging**：仅在访问 Google Scholar 或其他需要浏览器自动化的平台时必需。在 Chrome 地址栏打开 `chrome://inspect/#remote-debugging`，勾选 **Allow remote debugging for this browser instance**。
-- **curl**：必需，用于 API 调用。
+**前置要求**：本 Skill 依赖 academic-search 提供搜索基础设施。运行 `scripts/check-deps.sh` 确认环境就绪。
 
-arXiv、Semantic Scholar、PubMed、Papers with Code 等 API 平台无需 Chrome 远程调试即可使用。
+---
 
-**S2 API Key（强烈建议）**：无 Key 时 S2 速率上限极低，单 session 多次调用必触发 429。免费注册即可获得更高配额：https://www.semanticscholar.org/product/api#api-key-form。有 Key 时在请求头加 `x-api-key: {your_key}`。
+## 1. 核心工作流：选题审查五步法
 
-## 搜索哲学
+### 工作流总览
 
-**明确目标，选对平台，提取结构化数据，完成即止。**
+```
+Step 1 ─ 文献检索 (Literature Search)
+  ├── 多平台并行检索（arXiv, S2, PubMed, CNKI...）
+  ├── 学科路由 + Query 扩展
+  ├── 两遍策略：摘要表 → 深拉元数据
+  └── 输出：结构化论文清单 + 引用关系
 
-学术搜索不同于通用网页浏览——目标是获取**准确、结构化**的论文元数据，而不是浏览网页内容。
+Step 2 ─ 前沿趋势分析 (Frontier Analysis)
+  ├── 历年发文量/引用量趋势
+  ├── Citation Burst 检测（新兴方向识别）
+  ├── Venue 分布与顶级会议/期刊占比
+  ├── 关键词热度变迁（上升/下降/稳定）
+  └── 输出：趋势报告 + 热点图谱
 
-**① 明确检索目标，定义成功标准**：执行前先明确什么算完成了。
+Step 3 ─ 研究空白识别 (Gap Identification)
+  ├── 方法-任务矩阵构建
+  ├── 交叉学科空白区检测
+  ├── 已有综述/调研论文的 Future Work 提取
+  ├── 数据集/基准覆盖分析
+  └── 输出：空白区列表 + 机会评分
 
-- 关键词搜索？精确论文？某作者的全部论文？某 venue 的论文列表？
-- 学科是什么？是否需要使用 MeSH、JEL、MSC、ACM CCS 等受控词表？
-- 文献类型是什么：期刊论文、会议论文、预印本、系统综述、临床试验、工作论文、专著/章节？
-- 需要什么字段：仅标题和引用数 / 完整元数据 / PDF / BibTeX / 代码链接？
-- 年份范围？领域限定？返回几篇？
-- **成功标准**：用户要的是摘要表（第一遍）还是完整元数据（第二遍）？数量够了吗？字段都有了吗？这是后续所有决策的锚点。
+Step 4 ─ 创新性评估 (Novelty Assessment)
+  ├── 与已有工作的差异化对比
+  ├── 方法新颖性：是否首次将某方法用于某任务
+  ├── 场景新颖性：是否首次在特定场景/领域应用
+  ├── 组合创新：已知方法的非平凡组合
+  └── 输出：创新性评分 + 差异化报告
 
-**② 选对平台**：不同需求对应不同平台（见下方矩阵）。API 平台优先，CDP 用于无 API 的平台。
-
-**③ 提取结构化数据，先筛后深**：搜索的时间瓶颈不在"搜"，在"筛"。默认采用两遍策略：
-
-- **第一遍（轻量扫描）**：先拉 20-30 条结果，输出轻量摘要表——标题、作者、年份、venue、引用数、是否有开放 PDF/代码。不拉完整摘要。
-- **用户或任务确认核心论文**（引用数高、venue 等级高、与目标最相关的 5-10 篇）后，**第二遍**再深入拉摘要、PDF、BibTeX 等完整信息。
-
-所有结果输出为统一 schema（见 `references/metadata-schema.md`），不要输出原始 HTML 或非结构化文本。多平台结果用 DOI/arXiv ID 去重合并。
-
-**④ 过程校验，用失败信号更新方向**：每一步的结果都是信息，不只是成功或失败的二元信号。
-
-| 失败信号 | 含义 | 方向调整 |
-|---------|------|---------|
-| API 429 / Rate exceeded | 本次会话消耗超配额，不是暂时波动 | 等待 15s+ 或切换 CDP 模式；不要同一请求重试 |
-| Jina/WebFetch 超时 | 该页面对静态抓取不友好 | 改用 curl 直接调 API 或切换 CDP |
-| S2 返回结果为空 | query 措辞问题，或该平台无收录 | 换关键词组合，或换 arXiv/PubMed |
-| 平台返回"内容不存在" | 未必真的不存在，可能是访问方式问题 | 检查 URL 参数是否完整，换平台验证 |
-| 同一方式重试 3 次无改善 | 路径错了，不是还没找到方法 | 重新评估目标，换平台或换访问方式 |
-
-**⑤ 完成判断**：对照①定义的成功标准确认任务完成后停止，不为"更完整"而过度操作。
-
-## 平台选择矩阵
-
-根据任务特征选择最合适的平台和访问方式：
-
-| 需求 | 首选平台 | 访问方式 | 备注 |
-|------|---------|---------|------|
-| CS/Math/Physics/统计 论文搜索 | **arXiv** | REST API | 完全开放，PDF 直链 |
-| 引用数、引用/被引关系 | **Semantic Scholar** | REST API | 免费 Key 可提升速率 |
-| 作者主页、全部论文 | **Semantic Scholar** | REST API | /author/{id}/papers |
-| 生物医学、生命科学 | **PubMed** | NCBI E-utilities | 完全开放 |
-| 跨学科 DOI / 元数据核对 | **Crossref** | REST API | DOI、期刊、出版商、ISSN、参考文献基础信息 |
-| 跨学科作者/机构/概念/引用 | **OpenAlex** | REST API | 适合作为 Semantic Scholar 的跨学科补充 |
-| 开放获取状态 / OA PDF | **Unpaywall** | REST API | 判断 gold/green/hybrid/closed OA 与合法开放全文 |
-| ML 论文 + 代码仓库 | **Papers with Code** | REST API | 无需鉴权 |
-| ACM 顶会论文 (SIGKDD/WWW 等) | **ACM DL** | WebFetch + Jina | BibTeX 导出端点可直接访问 |
-| IEEE 期刊/会议论文 | **IEEE Xplore** | WebFetch / Jina | 有机构 Key 时用官方 API |
-| 广泛引用数 / 全平台覆盖 | **Google Scholar** | **CDP（必须）** | 无 API，反爬严重 |
-| 论文是否存在 / 基础元数据 | **Semantic Scholar** | REST API | 支持 DOI / arXiv ID 互查 |
-| **中文文献**（期刊/学位论文/会议） | **CNKI（知网）** | **CDP（必须）** | 无公开 API；机构登录后全文可得 |
-
-**API 平台访问方式**：
-
-- **WebSearch**：用于发现论文来源、查找 DOI/作者 ID 等信息入口
-- **WebFetch / Jina**：URL 已知时从页面提取，Jina（`r.jina.ai/{url}`）节省 token，适合文章类页面
-- **curl**：直接调用结构化 API，返回 JSON/XML
-- **CDP**：仅 Google Scholar 必须；其他平台在 API/WebFetch 无效时作为兜底
-
-详细 API 调用模板见 `references/api-cookbook.md`。
-
-## 学科路由
-
-先按用户问题判断学科，再读取对应 `references/disciplines/*.md`。如果用户问题跨学科，优先读取最核心学科的 profile，再用 OpenAlex / Crossref / Unpaywall 做跨学科补全。
-
-| 学科 | 读取文件 | 首选方向 |
-|------|----------|----------|
-| 计算机 / AI | `references/disciplines/computer-science.md` | arXiv、Semantic Scholar、ACM DL、IEEE、DBLP、Papers with Code |
-| 医学 / 生命科学 | `references/disciplines/biomedicine.md` | PubMed、PMC、Europe PMC、ClinicalTrials、bioRxiv、medRxiv |
-| 物理 / 数学 | `references/disciplines/physics-math.md` | arXiv categories、NASA ADS、INSPIRE HEP、MSC |
-| 化学 / 材料 | `references/disciplines/chemistry-materials.md` | Crossref、OpenAlex、ChemRxiv、ACS、RSC、Springer、Wiley |
-| 经济 / 社科 | `references/disciplines/economics-social-science.md` | RePEc、NBER、SSRN、OSF、PsyArXiv、JEL |
-| 人文 / 法律 | `references/disciplines/humanities-law.md` | Google Scholar、图书馆目录、JSTOR/Project MUSE/HeinOnline 访问状态 |
-
-学科 profile 决定 query expansion、排序标准、输出字段和全文访问边界。不要把 CCF 或 CS 顶会规则套到非 CS 学科。
-
-## 核心能力
-
-### 关键词搜索
-
-1. 先按“学科路由”读取 discipline profile：CS/ML → arXiv + Semantic Scholar；生医 → PubMed/Europe PMC；跨领域 → OpenAlex + Crossref + Semantic Scholar
-2. **扩展 query**：用户自然语言输入往往只是一个切入点，需要主动展开为 2-3 个互补 query 覆盖不同命名习惯：
-   - 同义词替换：`agent` → `agentic` / `multi-agent` / `autonomous`
-   - 子概念拆分：`time series agent` → `time series LLM agent` + `time series agentic reasoning` + `time series automated analysis`
-   - 缩写与全称并用：`TS` / `time series`，`LLM` / `large language model`
-   - 学科受控词表：医学用 MeSH，经济用 JEL，数学用 MSC，计算机用 ACM CCS，化学可补 CAS/化合物同义词
-   - 不同 query 结果合并去重，覆盖率比单 query 提升 30-50%
-3. 构造查询：arXiv 用 `search_query` 字段前缀语法；S2 用 `query` 参数；PubMed 用 `term` 布尔表达式
-4. **计划多次 S2 调用时优先用 batch API**（`/paper/batch`）而非多次 search，节省速率配额
-5. **第一遍输出轻量摘要表**（必含：标题、年份、venue、引用数、是否有开放 PDF），**不默认拉完整摘要**
-6. **意图判断**：用户明确说"只要前 N 篇"或"摘要表即可"时，直接输出第一遍结果，无需等待确认再停下
-7. 用户需要第二遍时，再深拉完整元数据
-
-多平台并行查询时，用子 Agent 分治（见"并行分治策略"一节）。
-
-**轻量摘要表输出格式示例**：
-
-| 标题 | 年份 | Venue | 引用数 | PDF |
-|------|------|-------|--------|-----|
-| Attention Is All You Need | 2017 | NeurIPS [CCF-A] | 120,000+ | ✓ arXiv |
-| BERT: Pre-training... | 2019 | NAACL [CCF-B] | 80,000+ | ✓ arXiv |
-
-Venue 等级标注规则：CS 会议参考 `references/venue-rankings.md`（CCF 分级）；非 CS 学科先读取 `references/disciplines/*.md` 和 `references/rankings/*.md`，按该学科的证据等级、文献类型或期刊/来源规则排序。期刊显示 JCR 分区（若可从平台字段获取）时必须标明来源。
-
-### 结果筛选
-
-搜索后用以下维度缩小范围，**优先帮用户筛出值得读的论文，而不是把所有结果都呈现**：
-
-| 筛选维度 | 数据来源 | 说明 |
-|---------|---------|------|
-| 引用数阈值 | S2 `citationCount` | 经典论文通常引用数高；新兴方向可适当放低阈值 |
-| 发表年份 | 所有平台 | 综述类需要覆盖历史；最新进展限定近 2-3 年 |
-| Venue 等级 | S2 `venue` + `references/venue-rankings.md` | CS 会议参考 CCF 分级；优先 CCF-A/B |
-| 学科证据等级 | discipline profile + ranking reference | 医学、社科、人文等不要套用 CCF；按学科规则排序 |
-| 开放 PDF | S2 `externalIds.ArXiv` 存在即可得 | **只要有 ArXiv ID 就标 ✓**，不依赖 openAccessPdf（该字段经常为 null） |
-| 代码可用性 | Papers with Code API | ML 论文用 `paperswithcode.com/api/v1/papers/?arxiv_id={id}` 自动补全代码列 |
-
-**排序建议**：面向学术前沿性的综合排序，优先级依次为：
-
-1. **时效性（最高权重）**：近 6 个月内发表的论文标注 `[新]` 并置顶展示，不因引用数低而降权——前沿方向的新论文引用数天然偏低，但代表最新进展
-2. **引用数（次要权重）**：同一时间段内按引用数降序，高引用代表社区认可度
-3. **学科评价规则（参考项）**：CS 用 CCF/顶会；医学用证据等级和研究类型；社科用期刊/工作论文体系和方法类型；人文允许专著、章节和档案来源优先于引用数。
-
-**实操分组示例**：
-- 第一组：近 6 个月论文，按引用数降序（含 `[新]` 标注）
-- 第二组：更早论文，按引用数降序，CCF-A/B 同引用数时优先
-
-**筛选后的典型结论格式**：
-
-> 共找到 28 篇，按引用数 + venue 等级筛选后，推荐优先阅读以下 6 篇：[列表]
-> 其余 22 篇可按需查阅。
-
-### 精确论文查找
-
-已知 DOI 或 arXiv ID 时，直接用 Semantic Scholar 精确查询：
-```bash
-# DOI 查询
-curl -s "https://api.semanticscholar.org/graph/v1/paper/DOI:{doi}?fields=title,authors,year,abstract,citationCount,openAccessPdf"
-
-# arXiv ID 查询
-curl -s "https://api.semanticscholar.org/graph/v1/paper/ARXIV:{arxiv_id}?fields=title,authors,year,abstract,citationCount,openAccessPdf"
+Step 5 ─ 选题建议 (Topic Proposal)
+  ├── 综合前三步结果生成备选方向
+  ├── 每个方向的可行性评估
+  ├── 资源需求估计（数据/算力/领域知识）
+  ├── 风险与挑战分析
+  └── 输出：选题建议报告（含优先级排序）
 ```
 
-### 元数据提取
+---
 
-所有提取结果必须转换为 `references/metadata-schema.md` 定义的标准 JSON schema。输出时：
+## 2. 分步指令
 
-- **单篇**：Markdown 表格格式，字段清晰
-- **多篇**：Markdown 列表表格（标题、作者、年份、Venue、引用数、PDF 链接）
-- **批量导出**：JSON 数组
+### Step 1: 文献检索
 
-### PDF / 全文获取
+调用 academic-search 基础设施进行多平台检索。
 
-只获取合法可公开访问的全文。按以下优先级尝试，**每步失败后才进入下一步**，并在结果中记录 `full_text_status`：
+1. **确定学科** → 读取 `references/disciplines/*.md`
+2. **Query 扩展** → 自动展开 2-3 个互补 query
+3. **意图判断** → 用户明确说数量时直接输出，否则两遍策略
+4. **多平台并行** → 按学科路由分发子 Agent
+5. **结果合并** → 按 `references/metadata-schema.md` 合并去重
+6. **引用关系** → 对核心论文拉取 S2 引用/被引列表
 
-1. **arXiv PDF 直链**：`externalIds.ArXiv` 存在时，直接构造 `https://arxiv.org/pdf/{arxiv_id}`（S2 的 `openAccessPdf` 字段经常为 null，但 arXiv PDF 实际可得，不依赖该字段）
+详细操作参见上游 `SKILL.md`（academic-search 基础设施层）。
 
-2. **Semantic Scholar openAccessPdf**：读取 API 响应 `openAccessPdf.url`，可作 arXiv 之外的 OA 补充
+### Step 2: 前沿趋势分析
 
-3. **OpenAlex OA 检查**（有 DOI 时必须执行，不可跳过）：
-   ```bash
-   curl -s "https://api.openalex.org/works?filter=doi:{doi}&select=id,open_access,best_oa_location" \
-     -H "User-Agent: academic-search-skill/1.x (mailto:your@email.com)"
-   ```
-   响应中 `best_oa_location.pdf_url` 非 null 时直接用；`open_access.is_oa=false` 时记录并进入下一步
+在 Step 1 的论文清单基础上，进行趋势分析。
 
-4. **Unpaywall**（有 DOI 时必须执行）：
-   ```bash
-   curl -s "https://api.unpaywall.org/v2/{doi}?email=your@email.com"
-   ```
-   返回 `best_oa_location.url_for_pdf` 字段；`is_oa=false` 时说明出版商无授权 OA 版本
+**关键指标**：
 
-5. **领域专用预印本库**（根据论文领域判断）：
-   - 地球科学 / 地质学 / 海洋 / 大气：EarthArXiv `https://eartharxiv.org/repository/search/?q={title_keywords}`
-   - 生物医学：Europe PMC `https://europepmc.org/search?query=DOI:{doi}`
-   - 物理 / 天文：INSPIRE-HEP `https://inspirehep.net/search?p=doi:{doi}`
-   - 心理 / 社科：PsyArXiv / SocArXiv
+| 指标 | 数据来源 | 计算方法 |
+|------|---------|---------|
+| 年度发文量 | S2/arXiv/PubMed 历年结果 | 按年份统计 paper count |
+| 年度引用中位数 | S2 citationCount | 按年份统计 median |
+| 关键词频率趋势 | 论文标题+摘要 | TF-IDF + 滑动窗口 |
+| Citation Burst | S2 citationCount 序列 | 改进的 Kleinberg burst detection |
+| Venue 分布 | S2 venue 字段 | 按 venue 分组计数 |
+| 核心作者识别 | S2 authors | 发文量 + 引用量综合排序 |
 
-6. **作者版预印本搜索**（前 5 步全失败时）：
-   WebSearch 查 `"{first_author_last_name}" "{paper_title_keywords}" filetype:pdf` 或 `site:researchgate.net`，寻找作者自存档版本
+**输出格式示例**：
 
-7. **告知用户**：如以上均无法获取，明确说明：
-   - 该论文无公开 OA 版本（引用步骤 3/4 的检查结果作为依据）
-   - 建议通过机构图书馆、作者邮件索取、或 ILL（馆际互借）获取
+```json
+{
+  "topic": "graph neural network for time series",
+  "analysis_period": "2022-2026",
+  "total_papers": 342,
+  "trends": {
+    "yearly_papers": {"2022": 45, "2023": 78, "2024": 112, "2025": 87, "2026": 20},
+    "citation_bursts": [
+      {"year": 2024, "paper": "...", "burst_strength": 12.5, "keyword": "spatial-temporal GNN"}
+    ],
+    "rising_keywords": ["spatial-temporal", "dynamic graph", "heterogeneous"],
+    "declining_keywords": ["static graph", "node classification"]
+  },
+  "top_venues": ["NeurIPS", "ICLR", "KDD", "TKDE"],
+  "core_authors": ["Author A", "Author B"]
+}
+```
 
-**Springer HTML 全文的特殊处理**：若 PDF 路由返回 HTML 而非 PDF 二进制（Content-Type 检查），说明该论文为"HTML 全文"形式（常见于 2024+ online-first 文章）。此时：
-- 记录为"HTML 全文可读，无独立 PDF"，不算获取失败
-- 返回文章 HTML 页面 URL 供用户在浏览器中阅读
+### Step 3: 研究空白识别
 
-**Cloudflare/403 拦截处理**：Wiley、AGU/Wiley 等出版商对自动请求有强 bot 防护，CDP 浏览器模式也可能被 Cloudflare 拦截。遇到此情况：
-- 不要反复重试（会触发更严格封锁）
-- 直接跳到步骤 3（OpenAlex）和步骤 4（Unpaywall）检查是否有合法 OA 版本
-- 步骤 7 告知用户原因
+**方法-任务矩阵**：构建 {方法} × {任务} 交叉表，标记已探索和未探索区域。
 
-`full_text_status` 枚举：
+```
+示例（Graph Neural Network × Time Series）：
 
-| 状态 | 含义 |
+                 时序预测  异常检测  分类  生成  可解释性
+GCN              ██████   ██████   ███   ██   ░░░░
+GAT              █████    ████    ███   █    ░░░░
+Transformer-GNN  ███████  ███     ██    ░░   ░░░░
+GraphGPT         ██       █       ░     ░    ░░░░
+Graph Diffusion  ░        ░       ░     █    ░░░░
+
+░ = 研究空白（opportunity）  █ = 已有一定工作量
+```
+
+**Future Work 挖掘**：搜索 "future work"、"open challenge"、"limitation" 等关键词。
+
+**空白评分公式**：
+
+```
+gap_score = w1 × (1 - coverage_ratio) + w2 × relevance_score + w3 × feasibility_score
+```
+
+### Step 4: 创新性评估
+
+| 维度 | 描述 | 评分 |
+|------|------|------|
+| 方法新颖性 | 该方法是否首次用于该任务/领域 | 1-5 |
+| 场景新颖性 | 该场景/领域是否首次被系统研究 | 1-5 |
+| 组合创新性 | 已知元素的非平凡组合 | 1-5 |
+| 可行性 | 数据可得性、算力需求、领域门槛 | 1-5 |
+| 影响力潜力 | 潜在引用/应用价值 | 1-5 |
+
+综合评分 = weighted_sum(novelty, feasibility, impact, ...)
+
+### Step 5: 选题建议
+
+综合 Step 1-4，生成选题建议报告。
+
+**输出模板**：
+
+```markdown
+## 推荐方向 1：[方向名称]
+- **创新性评分**: ★★★★☆ (4.2/5)
+- **可行性评分**: ★★★★☆ (3.8/5)
+- **核心依据**: ...
+- **关键论文**: [2-3 篇核心参考文献]
+- **推荐切入点**: ...
+- **潜在风险**: ...
+```
+
+---
+
+## 3. 多智能体工作流
+
+复杂选题审查任务应分发子 Agent 并行执行。
+
+### Agent 角色
+
+| Agent | 职责 | 输入 | 输出 |
+|-------|------|------|------|
+| **Searcher** | 多平台论文检索 | 关键词 + 学科 | 结构化论文清单 |
+| **Frontier Analyst** | 前沿趋势分析 | 论文清单 | 趋势报告 |
+| **Gap Analyst** | 研究空白识别 | 论文清单 + 矩阵 | 空白区报告 |
+| **Novelty Judge** | 创新性评估 | 论文清单 + 提案 | 评分报告 |
+| **Synthesizer** | 综合生成建议 | 所有子报告 | 选题建议报告 |
+
+### 分发策略
+
+```
+主 Agent（意图解析 → 拆解 → 分发 → 综合）
+  ├── Searcher Agent × N（多平台并行）
+  │     └── 去重合并 → 论文清单
+  ├── Frontier Analyst + Gap Analyst（并行）
+  │     └── 趋势 + 空白 → 分析基座
+  ├── (可选) Novelty Judge
+  │     └── 创新性评分
+  └── Synthesizer 综合 → 选题建议报告
+```
+
+子 Agent Prompt 必须指定加载 academic-search 和 research-topic-auditor 两个 Skill。
+
+---
+
+## 4. 参考文件索引
+
+### 基础设施层（academic-search）
+
+| 文件 | 用途 |
 |------|------|
-| `open_pdf` | 找到可公开访问 PDF |
-| `needs_institution` | 论文页可访问，但全文需要机构权限 |
-| `no_open_pdf` | 没有发现合法开放全文 |
-| `anti_bot_blocked` | 被 Cloudflare、验证码或反爬限制拦截 |
-| `html_not_pdf` | PDF 路由返回 HTML 页面而不是 PDF |
-| `unknown` | 当前证据不足，无法可靠判断 |
+| `references/api-cookbook.md` | 各平台 API 调用模板 |
+| `references/metadata-schema.md` | 统一元数据 Schema 与去重规则 |
+| `references/venue-rankings.md` | CS 会议/期刊 CCF 分级 |
+| `references/disciplines/*.md` | 6 大学科路由 profile |
+| `references/site-patterns/*.md` | 平台出版商操作经验 |
 
-不要尝试访问任何需要绕过付费墙的第三方服务。遇到 Elsevier、Wiley、Springer、ACS、Taylor & Francis、JSTOR 等商业出版平台时，先判定开放获取状态；若需要机构访问，停止自动下载并报告 `needs_institution`。
+### 应用层（research-topic-auditor）
 
-### BibTeX 导出
+| 文件 | 用途 |
+|------|------|
+| `references/auditor/frontier-analysis.md` | 前沿趋势分析方法论 |
+| `references/auditor/gap-identification.md` | 研究空白识别方法论 |
+| `references/auditor/novelty-assessment.md` | 创新性评估框架 |
+| `references/auditor/topic-proposal.md` | 选题建议生成模板 |
+| `references/auditor/multi-agent-workflow.md` | 多智能体协作工作流 |
+| `workflows/topic-audit.md` | 完整选题审查工作流 |
+| `agents/auditor/*.md` | 各 Agent 角色模板 |
+| `需求清单与能力规划.md` | 完整需求文档与路线图 |
 
-优先级：
+---
 
-1. **arXiv**：`https://arxiv.org/bibtex/{arxiv_id}` 直接获取
-2. **ACM DL**：先试 `https://dl.acm.org/action/exportCitation?doi={encoded_doi}&format=bibtex`；若返回 challenge/HTML 错页，回退 CDP
-3. **Semantic Scholar**：无直接端点，根据 `references/metadata-schema.md` 的模板从字段拼装
-4. **其他平台**：CDP 点击页面上的 "Export Citation" / "Cite" 按钮
+## 5. 设计原则
 
-### 作者主页解析
+1. **双层解耦**：基础设施层只负责"找"和"取"，应用层只负责"分析"和"判断"
+2. **证据驱动**：所有分析结论必须有论文引用支撑
+3. **空白 = 机会**：研究空白的识别结果是对用户最有价值的信息
+4. **多智能体协作**：复杂任务拆解为子任务，专用 Agent 并行处理
+5. **渐进式深入**：先宽后深，先全景扫描再深入分析
+6. **排序透明**：评分逻辑必须可解释，用户能理解每一项得分原因
 
-```bash
-# Semantic Scholar 作者搜索
-curl -s "https://api.semanticscholar.org/graph/v1/author/search?query={author_name}&fields=name,affiliations,paperCount,citationCount"
+---
 
-# 获取作者全部论文（分页）
-curl -s "https://api.semanticscholar.org/graph/v1/author/{author_id}/papers?fields=title,year,citationCount,externalIds&limit=100&offset=0"
+## 6. 使用示例
+
 ```
-
-Google Scholar 作者页需 CDP，见 `references/site-patterns/scholar.google.com.md`。
-
-## CDP 模式（Google Scholar 及其他需要浏览器自动化的平台）
-
-通过 CDP Proxy 直连用户日常 Chrome，天然携带登录态。
-
-所有操作在自己创建的后台 tab 中进行，不干扰用户已有 tab，完成后关闭。
-
-### 启动
-
-```bash
-bash ~/.claude/skills/academic-search/scripts/check-deps.sh
+帮我审查一下这个选题：基于图神经网络的时序预测方法研究
 ```
-
-脚本自动检查并启动 CDP Proxy（默认 `127.0.0.1:3456`，可通过 `CDP_PROXY_PORT` 覆盖）。
-
-### 操作方式
-
-进入浏览器层后，用 HTTP API 操控页面：
-
-```bash
-# 创建新 tab，导航到目标页
-TARGET=$(curl -s "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/new?url=https://scholar.google.com" | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).targetId")
-
-# 执行 JS 提取数据
-curl -s -X POST "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/eval?target=$TARGET" -d 'document.title'
-
-# 点击元素（CSS 选择器）
-curl -s -X POST "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/click?target=$TARGET" -d 'button[type=submit]'
-
-# 完成后关闭 tab
-curl -s "http://127.0.0.1:${CDP_PROXY_PORT:-3456}/close?target=$TARGET"
 ```
-
-完整 API 参考见 `references/cdp-api.md`。
-
-**三种点击方式**：
-
-| 方式 | 端点 | 适用场景 |
-|------|------|---------|
-| JS click | `/click` | 通用，速度快 |
-| 真实鼠标 | `/clickAt` | 需要触发文件对话框或绕过反自动化检测 |
-| 文件上传 | `/setFiles` | 直接设置 file input，绕过对话框 |
-
-**先了解页面结构，再决定动作**：用 `/eval document.body.innerText.slice(0, 500)` 或截图快速了解当前页面状态。
-
-## 并行分治策略
-
-任务包含多个**独立**目标时（如同时查询 N 篇论文、N 个来源），分发子 Agent 并行执行。
-
-**好处**：速度 = 单子任务时长；抓取内容不进入主 Agent context，节省 token。
-
-**子 Agent Prompt 写法**：
-- 必须写：`必须加载 academic-search skill 并遵循指引`
-- 描述**目标**（获取/提取/查找），不要指定具体步骤
-- 说明需要哪些字段（标题/引用数/PDF 等）
-- **注意用词**：「搜索 BERT 的引用数」会把子 Agent 锚定到 WebSearch；应写「获取 BERT 的引用数」——描述目标，不暗示手段
-
-**典型分治场景**：
-
-| 适合分治 | 不适合分治 |
-|---------|-----------|
-| 多平台并发查同一论文（arXiv + S2 + PubMed） | 查询有依赖关系（先搜索再按结果查详情） |
-| 批量查询 N 篇不相关论文 | 简单单平台单次 API 查询 |
-| 多个作者主页并行抓取 | 几次 curl 就能完成的轻量任务 |
-
-**多平台并发查同一论文时的去重**：
-
-子 Agent 返回结果后，主 Agent 按 `references/metadata-schema.md` 中的去重规则合并：DOI 为主键 → arXiv ID 次之 → 标题+年份模糊匹配。
-
-## 信息核实
-
-学术搜索的一手来源是**论文本身**和**平台官方 API**，不是二手报道。
-
-| 核实目标 | 一手来源 |
-|---------|---------|
-| 论文元数据（标题、作者、DOI）| 发表平台（ACM DL / IEEE / arXiv）官方页面、Crossref、OpenAlex |
-| 引用数 | Google Scholar（最全）> Semantic Scholar |
-| 开放获取状态 | Unpaywall > 出版商页面 > 仓储页面 |
-| 代码实现 | Papers with Code / 论文官方 GitHub |
-| 会议/期刊信息 | 主办方官网 |
-
-多平台引用数不一致时正常——不同平台收录范围不同，Google Scholar 通常最高。
-
-## 站点经验
-
-操作中积累的特定网站经验，按域名存储在 `references/site-patterns/` 下。
-
-已预置经验的平台：arXiv、Semantic Scholar、Google Scholar、ACM DL、IEEE Xplore、PubMed、Papers with Code、CNKI（知网），以及 ScienceDirect、Wiley、Springer、ACS 等主要出版商访问限制。
-
-确定目标平台后，**必须**读取对应文件获取先验知识（平台特征、有效模式、已知陷阱）。经验内容标注发现日期，当作**可能有效的提示，不是保证正确的事实**——按经验操作失败时，回退通用模式，并**更新经验文件**（记录失败原因和发现日期）。操作成功后若发现了新模式或陷阱，同样主动写入。
-
-## References 索引
-
-| 文件 | 何时加载 |
-|------|---------|
-| `references/api-cookbook.md` | 需要 API 调用示例、参数说明、响应字段映射时 |
-| `references/metadata-schema.md` | 整理提取结果、多平台去重合并、生成 BibTeX 时 |
-| `references/cdp-api.md` | 需要 CDP 浏览器操作时（Google Scholar、CNKI 等） |
-| `references/disciplines/*.md` | 需要按学科选择平台、扩展 query、排序和输出字段时 |
-| `references/rankings/*.md` | 需要非 CS 学科证据等级或来源评价规则时 |
-| `references/workflows/*.md` | 需要执行系统综述、核心论文清单、快速综述等研究工作流时 |
-| `references/venue-rankings.md` | 标注 CS 会议/期刊等级（CCF 分级）时 |
-| `references/site-patterns/{domain}.md` | 确定目标平台后，读取对应站点经验 |
-| `references/site-patterns/cnki.net.md` | 知网检索时必读：登录态要求、DOM 选择器、数据库代码 |
+帮我分析一下大语言模型在医疗领域的研究前沿和空白
+```
+```
+评估这个 idea 的创新性：用扩散模型做分子构象生成
+```
+```
+给我推荐 3 个 NLP 方向有潜力的研究课题
+```
+```
+systematic audit: 对比分析知识图谱与大语言模型结合的三个研究方向
+```
