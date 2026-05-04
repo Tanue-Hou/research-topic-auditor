@@ -44,14 +44,22 @@ Academic Search & Topic Discovery → 从搜索到选题的一站式学术研究
 ## Quick Start
 
 ```bash
-git clone https://github.com/your-username/academic-search ~/.claude/skills/academic-search
-bash ~/.claude/skills/academic-search/scripts/check-deps.sh
+# 克隆本仓库到 Claude Code skills 目录
+git clone https://github.com/Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
+# 检查环境依赖
+bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh
 ```
 
 然后直接对 Claude Code 说：
 
 ```
-搜索 2023 年以来关于 graph neural network 的顶会论文，给我前 10 篇
+审查选题：基于图神经网络的时序预测方法研究，帮我分析前沿趋势和空白
+```
+
+或者：
+
+```
+帮我推荐 3 个 NLP 方向有潜力的研究课题
 ```
 
 ---
@@ -111,15 +119,17 @@ bash ~/.claude/skills/academic-search/scripts/check-deps.sh
 
 ## 安装
 
+本 Skill 需要先安装底层搜索基础设施（academic-search），再安装上层审查 Skill。
+
 ```bash
-# 方式一：手动安装
-git clone https://github.com/your-username/academic-search ~/.claude/skills/academic-search
+# 步骤一：安装底层搜索 Skill（academic-search）
+git clone https://github.com/Mingyue-Cheng/academic-search ~/.claude/skills/academic-search
 
-# 方式二：让 Claude 安装
-# 帮我安装这个 skill：https://github.com/your-username/academic-search
+# 步骤二：安装本 Skill（research-topic-auditor）
+git clone https://github.com/Tanue-Hou/research-topic-auditor.git ~/.claude/skills/research-topic-auditor
 
-# 方式三：本地开发软链接（在项目目录内执行）
-ln -sfn "$(pwd)" ~/.claude/skills/academic-search
+# 步骤三：检查环境依赖
+bash ~/.claude/skills/research-topic-auditor/scripts/check-deps.sh
 ```
 
 **前置要求（仅 CDP 模式需要）**：arXiv / S2 / PubMed 等 API 平台直接可用，无需配置。如需访问 Google Scholar，需开启 Chrome 远程调试：
@@ -155,28 +165,43 @@ Open API 优先，Google Scholar 与 CNKI 等无公开 API 或强反爬平台需
 ## 项目结构
 
 ```
-academic-search/
-├── SKILL.md                    # 主指令文件（搜索哲学、平台矩阵、核心能力）
+research-topic-auditor/
+├── SKILL.md                    # 主指令文件（双层架构：搜索基础设施 + 选题审查）
 ├── 需求清单与能力规划.md        # 完整需求文档与路线图
+├── .claude/settings.json       # Claude Code 项目配置
 ├── scripts/
 │   ├── cdp-proxy.mjs           # CDP Proxy（直连用户 Chrome）
 │   ├── check-deps.sh           # 环境检查 + 自动启动 Proxy
 │   ├── self-test.sh            # 本地回归测试
 │   └── release-test.sh         # 发布前测试
 ├── agents/
-│   └── openai.yaml             # OpenAI 兼容 API 配置
+│   ├── openai.yaml             # OpenAI 兼容 API 配置
+│   └── auditor/                # 选题审查多智能体模板
+│       ├── searcher.md         #   文献检索 Agent
+│       ├── frontier-analyst.md #   前沿分析 Agent
+│       ├── gap-analyst.md      #   空白识别 Agent
+│       ├── novelty-judge.md    #   创新性评估 Agent
+│       └── synthesizer.md      #   综合建议 Agent
 ├── references/
-│   ├── api-cookbook.md         # 多平台调用速查
+│   ├── api-cookbook.md         # 多平台 API 调用速查
 │   ├── metadata-schema.md      # 跨平台统一元数据 schema
 │   ├── venue-rankings.md       # CS 会议/期刊 CCF 分级速查
 │   ├── cdp-api.md              # CDP Proxy HTTP API 完整参考
 │   ├── disciplines/            # 多学科学科路由与 query expansion
 │   ├── rankings/               # 非 CS 学科评价/证据等级
-│   ├── workflows/              # 系统综述、核心论文清单等工作流
-│   └── site-patterns/          # 平台与出版商操作经验文件
+│   ├── site-patterns/          # 平台与出版商操作经验文件
+│   ├── workflows/              # 系统综述等工作流
+│   └── auditor/                # 选题审查方法论
+│       ├── frontier-analysis.md
+│       ├── gap-identification.md
+│       ├── novelty-assessment.md
+│       ├── topic-proposal.md
+│       └── multi-agent-workflow.md
+├── workflows/
+│   └── topic-audit.md          # 完整选题审查工作流
 └── docs/
-    ├── skill-usage-comparison.md                  # 使用/未使用 Skill 的搜索对比实验
-    └── multidisciplinary-improvement-analysis.md  # 多学科能力完善建议
+    ├── skill-usage-comparison.md
+    └── multidisciplinary-improvement-analysis.md
 ```
 
 ## 功能路线图
@@ -197,20 +222,28 @@ Phase 1 (1-4周)            Phase 2 (4-8周)           Phase 3 (8-12周)
 
 ## 使用方法
 
+本 Skill 的核心场景是选题审查，以下是一些典型用法：
+
+```
+审查选题：基于图神经网络的时序预测方法研究
+```
+```
+帮我分析一下大语言模型在医疗领域的研究前沿和空白
+```
+```
+评估这个 idea 的创新性：用扩散模型做分子构象生成
+```
+```
+帮我推荐 3 个 NLP 方向有潜力的研究课题
+```
+```
+systematic audit: 对比分析知识图谱与大语言模型结合的三个研究方向
+```
+
+底层搜索功能（论文检索、引用查询、BibTeX 导出等）同样可用：
+
 ```
 帮我找 Yann LeCun 在 Semantic Scholar 上的所有论文，按引用数排序
-```
-```
-这篇论文的 BibTeX：https://arxiv.org/abs/1706.03762
-```
-```
-同时调研 BERT、GPT-3、T5 的元数据和引用数，做对比表格
-```
-```
-去 Google Scholar 查一下 "attention is all you need" 的引用数
-```
-```
-帮我分析一下 graph neural network 近两年的研究热点和发展趋势
 ```
 
 ---
