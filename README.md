@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="assets/logo.png" alt="academic-search" width="80" style="vertical-align:middle; margin-right:12px;" />
-  <strong style="font-size:2em; vertical-align:middle;">Academic Search & Topic Discovery</strong>
+  <strong style="font-size:2.2em; vertical-align:middle;">Research Topic Auditor</strong>
 </p>
 
-<p align="center">学术搜索 + 选题发现 —— 不只搜论文，更帮你找方向</p>
+<p align="center">科研选题审查 Skill —— 不只搜论文，更帮你找方向</p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-v1.2.1-0f766e" />
+  <img src="https://img.shields.io/badge/version-v0.1.0-0f766e" />
   <img src="https://img.shields.io/badge/license-MIT-1f2937" />
   <img src="https://img.shields.io/badge/status-building-yellow" />
+  <img src="https://img.shields.io/badge/built_on-academic_search_v1.2.0-blue" />
 </p>
 
 <p align="center">🌐 <a href="README.en.md">English</a> | 简体中文</p>
@@ -16,7 +16,7 @@
 ---
 
 > 🚧 **本项目基于 [Mingyue-Cheng/academic-search](https://github.com/Mingyue-Cheng/academic-search) v1.2.0（作者：Mingyue Cheng，MIT License）进行扩展开发。**
-> 原项目 `academic-search` 提供了一个出色的多平台学术搜索基础设施。**research-topic-auditor** 在此基础上构建 **选题发现与研究前沿分析** 能力，形成双层架构：底层搜索 + 上层审查。
+> 原项目 `academic-search` 提供了多平台学术搜索基础设施。**research-topic-auditor** 在此基础上构建 **选题审查** 能力，形成双层架构：底层搜索 + 上层审查。
 
 ## News
 
@@ -25,20 +25,20 @@
 
 ---
 
-🚀 **覆盖全**：arXiv、Semantic Scholar、OpenAlex、Crossref、Unpaywall、Google Scholar、CNKI... 多学科平台协同检索。
-📊 **功能强**：论文检索、引用追踪、BibTeX 导出、多源去重，一气呵成。  
+🚀 **底层引擎**：arXiv、Semantic Scholar、OpenAlex、Crossref、Unpaywall、Google Scholar、CNKI... 10+ 学术平台协同检索。
+📊 **审查核心**：前沿趋势分析、研究空白识别、创新性评估、选题建议，五步工作流驱动。
 📑 **获取稳**：开放获取 PDF 级联获取，明确标注机构权限和反爬限制。  
 🎯 **策略精**：时效性优先排序，自带 CCF 等级标注，只看最值得看的顶会干货。  
-💡 **选题新**：研究热点检测、Citation Burst 分析、文献聚类、研究空白识别、论文推荐。
+💡 **选题新**：研究热点检测、Citation Burst 分析、文献聚类、多智能体选题建议。
 
 ## 项目定位
 
 ```
-Academic Search Skill (上游)      → 多平台学术搜索基础设施
+academic-search (上游)         → 多平台学术搜索基础设施
          +
-Topic Discovery Capability (新增) → 选题发现与研究前沿分析
+research-topic-auditor (新增)  → 科研选题审查五步法
          =
-Academic Search & Topic Discovery → 从搜索到选题的一站式学术研究助手
+从搜索到选题的一站式科研审查助手
 ```
 
 ## Quick Start
